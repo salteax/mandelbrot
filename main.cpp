@@ -16,6 +16,10 @@ int screen_height{1080};
 int num_frames{0};
 float last_time{0.0f};
 
+float center_x{0.0f};
+float center_y{0.0f};
+float zoom{1.0};
+
 float vertices[] = {
 //  x       y       z
     -1.0f,  -1.0f,  -0.0f,
@@ -40,6 +44,55 @@ void countFPS() {
         std::cout << 1000.0 / num_frames << " ms/frames\n";
         num_frames = 0;
         last_time += 1.0;
+    }
+}
+
+void process_input(GLFWwindow * window) {
+    // ESCAPE
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, true);
+    }
+    // UP
+    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        center_y = center_y + 0.005f * zoom;
+        if(center_y > 1.0f) {
+            center_y = 1.0f;
+        }
+    }
+    // DOWN
+    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        center_y = center_y - 0.005f * zoom;
+        if(center_y < -1.0f) {
+            center_y = -1.0f;
+        }
+    }
+    // LEFT
+    if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        center_x = center_x - 0.005f * zoom;
+        if(center_x < -1.0f) {
+            center_x = -1.0f;
+        }
+    }
+    // RIGHT
+    if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        center_x = center_x + 0.005f * zoom;
+        if(center_x > 1.0f) {
+            center_x = 1.0f;
+        }
+    }
+    // SHIFT
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        zoom = zoom * 1.02f;
+        if(zoom > 1.0f) {
+            zoom = 1.0f;
+        }
+    }
+    // CONTROL
+    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        zoom = zoom * 0.98f;
+        if(zoom < 0.0000001f) {
+            zoom = 0.0000001f;
+        }
     }
 }
 
@@ -95,7 +148,12 @@ int main(int argc, char** argv) {
 
         countFPS();
 
+        process_input(window);
+
         shader.use_shader();
+        shader.set_float("zoom", zoom);
+        shader.set_float("center_x", center_x);
+        shader.set_float("center_y", center_y);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
